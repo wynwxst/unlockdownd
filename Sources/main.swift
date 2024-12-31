@@ -1,13 +1,23 @@
 import Foundation
 import Network
+import Security
 
 class LockdowndMuxer {
     private var connection: NWConnection?
+    private var puK: SecKey
+    private var prK: SecKey
+    private var B64C: String
+    private var B64K: String
 
     init() {
 
         let endpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: 62078) // usbmuxd port
         self.connection = NWConnection(to: endpoint, using: .tcp)
+        let (PK, PK2) = generateB64Keepair()
+        puK = PK!
+        prK = PK2!
+        B64C = Data(SecKeyToPEM(puK,"PUBLIC")!).base64EncodedString()
+        B64K = Data(SecKeyToPEM(puK,"PRIVATE")!).base64EncodedString()
     }
 
     func connectToLockdownd() throws {
@@ -114,6 +124,8 @@ class LockdowndMuxer {
                 "ProtocolVersion": "2",              // If you see this please help, idk any documented vers past 2
     
             ]
+            "HostCertificate": B64C,
+            "HostPrivateKey": B64K
         ]
         
         // Merge the additional data into the macData dictionary
@@ -134,6 +146,40 @@ class LockdowndMuxer {
     func StartDebugServer(){
         startService(name: "com.apple.debugserver", port: 12345) // is this port ok?
     }
+    // bad joke
+    func generateB64Keepair() -> (publicKey: SecKey?,privateKey: SecKey?) {
+    let keyPairAttr: [String:Any] = [
+    "kSecAttrKeyType": kSecAttrKeyTypeRSA, // is this changable?
+    "kSecAttrKeySizeInBits": 2048,
+    "kSecPrivateKeyAttrs": [
+    "kSecAttrIsPermanent": false // no keychain
+    ],
+    "kSecPublicKeyAttrs": [
+    "kSecAttrIsPermanent": false // no to u 2
+    ]
+    ]
+    var publicKey, privateKey: SecKey?
+
+    let stat = SecKeyGeneratePair(keyPairAttr as CFDictionary, &publicKey, &privateKey)
+    if status == errSecSuccess {
+        return (publicKey,privateKey)
+    } else {
+    print("Unable to generate key values")
+    return (nil,nil)
+    }
+
+    }
+    func SecKeyToPEM(pubK: SecKey,type:String) -> String? {
+    var error: Unmanaged<CFError>?
+    guard let pubK = SecKeyCopyExternalRepresentation(pubK,&error) else {
+    print("Error: \(error!.takeRetainedValue())")
+    return nil
+    }
+    let b64E = (pubK as Data).base64EncodedString(options: [])
+    let PEM = "-----BEGIN \(type) KEY-----\n" + b64E + "\n-----END \(type) KEY-----"
+    }
+    return PEM
+
 }
 
 func ignoremeimexampleusage(){
