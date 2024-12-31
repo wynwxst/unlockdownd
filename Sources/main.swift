@@ -3,7 +3,7 @@ import Network
 
 class LockdowndMuxer {
     private var connection: NWConnection?
-
+    
     init() {
 
         let endpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: 62078) // usbmuxd port
@@ -64,7 +64,7 @@ class LockdowndMuxer {
         }
 
 
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 1024) { data, _, error in
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 1024) { data, _, _, error  in
             if let data = data {
                 responseData = data
             }
@@ -101,10 +101,11 @@ class LockdowndMuxer {
                     "SupportsDebugging": true
                     ]
                 ]
-         sendRequest(emulateMac(with: pairoptions))
-          
+         let error = try? sendRequest(emulateMac(with: pairoptions))
+        print(error)
     }
-    func emulateMac(with additionalData: [String: Any]) -> [String: Any] {
+    
+    func emulateMac(with additionalData: [String: Any]?) -> [String: Any] {
         var macData: [String: Any] = [
             "HostID": UUID().uuidString,        // This creates a unique ID for the host (I hope)
             "HostInfo": [
@@ -117,8 +118,10 @@ class LockdowndMuxer {
         ]
         
         // Merge the additional data into the macData dictionary
-        for (key, value) in additionalData {
-            macData[key] = value
+        if let additionalData {
+            for (key, value) in additionalData {
+                macData[key] = value
+            }
         }
         
         return macData
@@ -129,17 +132,22 @@ class LockdowndMuxer {
             "Request":"StartService",
             "Port": port,
             "Service": name]
-        sendRequest(emulateMac(StartOpts))
+        let err = try? sendRequest(emulateMac(with: StartOpts))
+        print(err)
     }
     func StartDebugServer(){
         startService(name: "com.apple.debugserver", port: 12345) // is this port ok?
     }
 }
 
-func ignoremeimexampleusage(){
-  let LM = LockdowndMuxer()
-  LM.connectToLockdownd()
+func ignoremeimexampleusage() {
+    let LM = LockdowndMuxer()
+    do {
+        try LM.connectToLockdownd()
+    } catch {
+        print(error.localizedDescription)
+    }
 
-  let response = try LM.sendRequest(emulateMac()) // I need to find out how to launch debug server... thank you libimobiledevice
-    
+    let response = try? LM.sendRequest(LM.emulateMac(with: nil)) // I need to find out how to launch debug server... thank you libimobiledevice
+    print(response)
 }
