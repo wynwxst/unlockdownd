@@ -4,15 +4,11 @@ import Security
 
 class LockdowndMuxer {
     private var connection: NWConnection?
-<<<<<<< HEAD
     private var puK: SecKey
     private var prK: SecKey
     private var B64C: String
     private var B64K: String
-
-=======
     
->>>>>>> 0078ed3d37a427f498f65eb980ec5734969a577b
     init() {
 
         let endpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: 62078) // usbmuxd port
