@@ -99,6 +99,7 @@ class LockdowndMuxer {
                     "SupportsWiFi": true,
                     "SupportsAppInstall": true,
                     "SupportsDebugging": true
+                    ]
                 ]
          sendRequest(emulateMac(with: pairoptions))
           
@@ -133,6 +134,7 @@ class LockdowndMuxer {
     func StartDebugServer(){
         startService(name: "com.apple.debugserver", port: 12345) // is this port ok?
     }
+}
 
 func ignoremeimexampleusage(){
   let LM = LockdowndMuxer()
