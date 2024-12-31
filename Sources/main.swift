@@ -105,12 +105,12 @@ class LockdowndMuxer {
     }
     func emulateMac(with additionalData: [String: Any]) -> [String: Any] {
         var macData: [String: Any] = [
-            "HostID": UUID().uuidString,        // This creates a unique ID for the host
+            "HostID": UUID().uuidString,        // This creates a unique ID for the host (I hope)
             "HostInfo": [
                 "SystemName": "macOS",
                 "SystemVersion": "15.0",             // You can modify this as needed
                 "ComputerName": "MacBook Pro",         
-                "ProtocolVersion": "2",              // Assuming version 2 is fine for compatibility
+                "ProtocolVersion": "2",              // If you see this please help, idk any documented vers past 2
     
             ]
         ]
@@ -131,7 +131,7 @@ class LockdowndMuxer {
         sendRequest(emulateMac(StartOpts))
     }
     func StartDebugServer(){
-        startService(name: "com.apple.debugserver", port: 12345)
+        startService(name: "com.apple.debugserver", port: 12345) // is this port ok?
     }
 
 func ignoremeimexampleusage(){
