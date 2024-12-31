@@ -91,28 +91,53 @@ class LockdowndMuxer {
 
         return response
     }
-    func emulateMac() -> [String: Any] {
-        return [
-            "Request": "Pair",
-            "HostID": UUID().uuidString,        // idk if this method actually exists, I hope so
-            "HostInfo": [
-                "SystemName": "macOS",
-                "SystemVersion": "15.0",             // would this be fine?
-                "ComputerName": "MacBook Pro",         
-                "ProtocolVersion": "2" // only up till procotol version 2 is documented
-                "PairingOptions": [                       
+    func pair(){
+         var pairoptions: [String:Any]      =   [
+                    "Request": "Pair",
+                    "PairingOptions": [                       
                     "PairingType": "Lockdown",
                     "SupportsWiFi": true,
                     "SupportsAppInstall": true,
                     "SupportsDebugging": true
                 ]
-            ],
-
-}
+         sendRequest(emulateMac(with: pairoptions))
+          
+    }
+    func emulateMac(with additionalData: [String: Any]) -> [String: Any] {
+        var macData: [String: Any] = [
+            "HostID": UUID().uuidString,        // This creates a unique ID for the host
+            "HostInfo": [
+                "SystemName": "macOS",
+                "SystemVersion": "15.0",             // You can modify this as needed
+                "ComputerName": "MacBook Pro",         
+                "ProtocolVersion": "2",              // Assuming version 2 is fine for compatibility
+    
+            ]
+        ]
+        
+        // Merge the additional data into the macData dictionary
+        for (key, value) in additionalData {
+            macData[key] = value
+        }
+        
+        return macData
+    
+    }
+    func startService(name: String, port: Int){
+        var StartOpts: [String:Any] = [
+            "Request":"StartService",
+            "Port": port,
+            "Service": name]
+        sendRequest(emulateMac(StartOpts))
+    }
+    func StartDebugServer(){
+        startService(name: "com.apple.debugserver", port: 12345)
+    }
 
 func ignoremeimexampleusage(){
   let LM = LockdowndMuxer()
   LM.connectToLockdownd()
 
-  let response = try LM.sendRequest(emulateMac()) // I need to find out how to launch debug server...
+  let response = try LM.sendRequest(emulateMac()) // I need to find out how to launch debug server... thank you libimobiledevice
+    
 }
