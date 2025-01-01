@@ -18,6 +18,7 @@ class LockdowndMuxer {
         prK = PK2!
         B64C = Data(SecKeyToPEM(puK,"PUBLIC")!).base64EncodedString()
         B64K = Data(SecKeyToPEM(puK,"PRIVATE")!).base64EncodedString()
+        connectToLockdownd()
     }
 
     func connectToLockdownd() throws {
